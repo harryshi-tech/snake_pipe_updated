@@ -1,0 +1,153 @@
+# ============================================================
+# T-junction demo configuration
+# ============================================================
+# Runs the T-junction navigation gaits (t_junction, spiraling,
+# windowed_rolling_helix) in the "junction" world.
+#
+# NOTE:
+# - Teleop is disabled here (you said we'll add it later).
+# - Start pose may need minor tuning depending on your URDF
+#   and friction settings.
+
+sim:
+  gui: true
+  realtime: true
+  timestep: 0.0041666667
+  substeps: 1
+  gravity: [0.0, 0.0, -9.81]
+  enable_file_caching: false
+
+logging:
+  enable: true
+  out_dir: "log/data"
+  run_name: "tjunction_demo"
+  add_timestamp: true
+  decimation: 1
+  flush_every: 240
+  joints:
+    mode: "all"
+  signals:
+    joint:
+      - q_meas
+      - q_nom
+      - q_cmd
+      - tau
+    scalar:
+      - snake_time
+      - speed_multiplier
+      - tightness
+      - pole_direction
+      - wt_direction
+    base:
+      - base_pos
+      - base_quat
+    events: true
+
+runner:
+  snake_params_yaml: "snake_control/param/snake_params.yaml"
+  duration_s: 0.0
+
+  controller:
+    type: "gait_position"
+    gait: "rolling_helix"
+    snake_type: "SEA"
+    use_snake_time: true
+    transition_time: 0.0
+
+    # Optional overrides over YAML defaults
+    gait_params:
+      # These three are what the T-junction family uses to resolve direction + tightness
+      pole_direction: 1.0
+      wt_direction: 1.0
+      tightness: 0.55
+
+
+
+    pole_params: {}
+
+  teleop:
+    enable: true
+
+  print:
+    state: true
+    state_every_s: 1.0
+    params: true
+    params_every_s: 1.0
+    joy_active: true
+
+robot:
+  snake_type: "SEA"
+  urdf_path: "snakelib_description/SEA_snake/SEA_snake.urdf"
+
+  # Start slightly offset from the cylinder so the robot isn't spawned interpenetrating.
+  base_pos: [-0.44, -0.5, 0.10]
+  base_rpy: [0.0, 0.0, 0.0]
+
+  fixed_base: false
+  self_collision: true
+
+  motor_idx_rule: "auto_revolute"
+  motor_indices: []
+  reverser_joint_order: true
+
+control:
+  mode: "position"
+  max_torque: 8.0
+
+  # For T-junction work, contact torque tends to be the most useful.
+  torque_reading: "contact"
+
+  tau_filter:
+    type: "lpf"
+    window: 5
+    tau: 0.1
+  tau_deadband: 0.0
+
+  tau_sign_map: "snake_bullet/param/joint_sign_map_sea.yaml"
+  apply_tau_sign_map: true
+
+  position_gain: 0.3
+  velocity_gain: 1.0
+
+camera:
+  tracking: true
+  distance: 1.5
+  yaw: 90
+  pitch: -30
+  target: "mid_joint"
+
+dynamics:
+  lateral_friction: 0.9
+  spinning_friction: 0.0
+  rolling_friction: 0.0
+  restitution: 0.0
+  friction_anchor: 1
+
+worlds:
+  - type: "flat"
+    pos: [0.0, 0.0, 0.0]
+    rpy: [0.0, 0.0, 0.0]
+
+  - type: "junction"
+    # Main pipe is vertical, with a branch near the top.
+    pos: [-0.5, -0.5, 0.4]       # pos.z = main_length/2
+    rpy: [0.0, 0.0, 0.0]
+
+    main_pipe:
+      radius: 0.04
+      length: 0.8
+
+    branch_pipe:
+      radius: 0.04
+      length: 0.6
+      branch_angle: 1.57079632679  # pi/2 (90 degrees)
+
+    rgba_main:   [0.70, 0.70, 0.70, 1.0]
+    rgba_branch: [0.60, 0.80, 0.60, 1.0]
+
+    pipe_dynamics:
+      lateral_friction: 0.9
+      spinning_friction: 0.0
+      rolling_friction: 0.0
+      restitution: 0.0
+      friction_anchor: 1

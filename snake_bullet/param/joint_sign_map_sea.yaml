@@ -1,0 +1,36 @@
+# Per-joint sign map for SEA_snake (joint names in SEA_snake.urdf).
+#
+# Purpose:
+# - When using PyBullet reaction/contact torque sensing, some joints can report
+#   torques with opposite sign relative to (q_cmd - q_meas) depending on the
+#   URDF joint frame conventions.
+# - This map lets you flip those joints so tau is consistent across all joints.
+#
+# How to use:
+#   control:
+#     torque_reading: reaction   # or contact
+#     tau_sign_map: snake_bullet/param/joint_sign_map_sea.yaml
+#     apply_tau_sign_map: true
+#
+# NOTE:
+# - This file only changes the SIGN of the returned tau (and optionally q/dq/cmd
+#   if you enable those switches in sim_env). It does NOT change the URDF.
+# - You can regenerate a map from logs using debug/make_joint_sign_map.py.
+
+joint_sign:
+  SA001__MoJo:  1
+  SA002__MoJo:  1
+  SA003__MoJo:  1
+  SA004__MoJo:  1
+  SA005__MoJo:  1
+  SA006__MoJo:  1
+  SA007__MoJo:  1
+  SA008__MoJo: -1
+  SA009__MoJo: -1
+  SA010__MoJo: -1
+  SA011__MoJo: -1
+  SA012__MoJo: -1
+  SA013__MoJo: -1
+  SA014__MoJo: -1
+  SA015__MoJo: -1
+  SA016__MoJo:  1

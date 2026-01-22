@@ -1,0 +1,9 @@
+Metadata-Version: 1.2
+Name: snake-control
+Version: 0.0.1
+Summary: Controllers for snake_pipe (ROS-agnostic, ROS-ready).
+Home-page: UNKNOWN
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.8

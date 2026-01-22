@@ -1,0 +1,340 @@
+# ============================================================
+# Global simulation configuration (ROS-agnostic, ROS-ready)
+# ============================================================
+
+sim:
+  gui: true                 # true = PyBullet GUI, false = DIRECT
+  realtime: true            # if true, sleep to match wall-time
+  timestep: 0.0041666667    # 1/240
+  substeps: 1
+  gravity: [0.0, 0.0, -9.81]
+  enable_file_caching: false # whether Bullet caches loaded files on disk
+
+# ============================================================
+# CSV logging (optional)
+# ============================================================
+# Logs are written to <repo_root>/<out_dir> by default.
+# Each run produces several CSVs:
+#   <run_id>__q_meas.csv, <run_id>__q_cmd.csv, <run_id>__tau.csv, ...
+#   <run_id>__scalars.csv, <run_id>__base.csv, <run_id>__events.csv
+#
+# Tip: keep 'add_timestamp: true' so runs don't overwrite each other.
+
+logging:
+  enable: true
+  out_dir: "log/data"
+  run_name: "position2"          # folder name prefix
+  add_timestamp: false      # create a new folder: <run_name>_YYYYMMDD_HHMMSS
+  decimation: 1             # log every N sim steps
+  flush_every: 240          # fsync-ish cadence (steps)
+
+  # Which joints to log (indices in the controller's joint vector order)
+  joints:
+    mode: "all"            # all | range | list
+    # start: 0
+    # stop: 8
+    # list: [0, 1, 2, 3]
+
+  # Choose what to log (omit any you don't need)
+  signals:
+    joint:                  # one CSV per key
+      - q_meas              # measured joint angle [rad]
+      - q_nom               # nominal gait joint angle [rad] (if available)
+      - q_cmd               # commanded joint angle [rad]
+      - tau                 # sensed motor torque [Nm]
+      - tau_f               # filtered torque (SBC) [Nm] (if available)
+      - A                   # SBC compliant amplitude magnitude (if available)
+      - A_scale             # A/A0 per joint (if available)
+      - A0
+    scalar:                 # one shared CSV
+      - snake_time
+      - speed_multiplier
+      - tightness
+      - pole_direction
+      - wt_direction
+      - sbc_scale_mean
+      - sbc_scale_min
+      - sbc_scale_max
+    base:                   # one shared CSV
+      - base_pos
+      - base_quat
+      - base_lin_vel
+      - base_ang_vel
+    events: true            # gait + teleop command name
+
+# ============================================================
+# Runner (snake_bullet/run_sim.py)
+# ============================================================
+# Choose controller, joystick teleop, and terminal printing here.
+
+runner:
+  # Path to the gait/robot parameters (repo-relative)
+  snake_params_yaml: "snake_control/param/snake_params.yaml"
+
+  # Stop after N seconds (0 = run until quit/Ctrl+C)
+  duration_s: 0.0
+
+  controller:
+    # type: gait_position | sbc_position | closed_loop_sine | position_open_loop
+    type: "gait_position "
+
+    # --- gait_position ---
+    gait: "slithering"
+    snake_type: "SEA"                 # optional; defaults to robot.snake_type
+    params_yaml: "snake_control/param/snake_params.yaml"  # optional; defaults to runner.snake_params_yaml
+    use_snake_time: true
+    transition_time: 0.0               # set >0 to blend when switching gaits
+
+    # Optional constant overrides merged over YAML defaults (then teleop overrides override these)
+    gait_params: {}
+
+    # Optional overrides merged over YAML pole_climb group
+    pole_params: {}
+
+    # --- position_open_loop ---
+    # target: [0.0, 0.0, ...]     # desired joint angles [rad] (length = #joints)
+
+    # --- sbc_position ---
+    # sbc_windows: 0          # 0=per-joint SBC (default), 1=global (per parity), W>1=windowed decentralized coupling
+    # sbc_window_sigma: null  # Gaussian width in joint-index units (null -> auto)
+
+    # Same gait execution as gait_position, but adds an SBC amplitude-compliance layer.
+    # enable_sbc: true
+    # torque_lpf_tau: 0.05
+    # torque_deadband: 0.0
+    # C_gain: 0.05
+    # K_sig_pos: 6.5
+    # M_sig_pos: 0.001
+    # B_sig_pos: 0.161   # or omit to use critical damping
+    # K_sig_neg: 4.0
+    # M_sig_neg: 0.001
+    # B_sig_neg: 0.126
+    # A_min: 0.0
+    # A_max_factor: 1.2
+
+  teleop:
+    enable: true
+    joy_index: 0
+    deadzone: 0.18
+    verbose: true
+    joy_to_gait_yaml: "snake_control/param/joy_to_gait.yaml"
+    joy_mapping_yaml: "snake_control/param/logi_cordless_rumblepad2_mappings.yaml"
+
+  print:
+    state: true
+    state_every_s: 1.0
+    params: false
+    params_every_s: 1.0
+    joy_active: true
+
+# ============================================================
+# Robot configuration
+# ============================================================
+
+robot:
+  snake_type: "SEA"         # "SEA", "REU", "RSNAKE" (user-defined naming)
+  urdf_path: "snakelib_description/SEA_snake/SEA_snake.urdf"  # repo-relative path
+
+  base_pos: [0, 0, 0.0]
+  base_rpy: [0.0, 0.0, 0.0]     # roll, pitch, yaw [rad]
+
+  fixed_base: false
+  self_collision: true
+
+  # Which joints to control:
+  # - "auto_revolute": control all revolute joints in the URDF
+  # - "explicit": use motor_indices below
+  motor_idx_rule: "auto_revolute"
+  motor_indices: []             # used only if motor_idx_rule == "explicit"
+
+  reverser_joint_order: true
+
+# ============================================================
+# Controller ↔ simulator interface
+# ============================================================
+
+control:
+  mode: "position"            # "position", "velocity", or "torque"
+  max_torque: 8.0             # Nm (used as force limit in pos/vel modes too)
+
+  # What to log/report as RobotState.tau:
+  # - "applied": PyBullet's applied motor effort (can saturate at max_torque)
+  # - "contact": joint torques induced by external contacts (Jacobian-mapped from contact point forces)
+  # - "reaction": joint load torque from Bullet joint reaction wrench (robust; varies with environment)
+  #   Note: if torque_reading is "contact" but mapping yields near-zero while contacts exist, we fall back to "reaction".
+  torque_reading: "contact"
+
+  # Optional smoothing for RobotState.tau (recommended for contact/reaction torque).
+  # - type: "none" | "lpf" | "median" | "median_lpf"
+  # - tau:  low-pass time constant [s] (for lpf / median_lpf)
+  # - window: median filter window (odd numbers like 3,5,7 work well)
+  tau_filter:
+    type: "lpf"
+    window: 5
+    tau: 0.1
+  # Deadband applied after filtering [Nm]
+  tau_deadband: 0.0
+
+  # Optional per-joint sign map to reconcile sign conventions.
+  # This is especially helpful when using reaction/contact torque sensing,
+  # because some joints can report a torque sign opposite to (q_cmd - q_meas)
+  # depending on URDF joint frame conventions.
+  tau_sign_map: "snake_bullet/param/joint_sign_map_sea.yaml"
+  apply_tau_sign_map: true
+  # apply_state_sign_map: false   # also sign-correct q/dq returned by get_state()
+  # apply_cmd_sign_map: false     # also sign-correct commands before sending to Bullet
+
+  # Optional Bullet inner-loop gains (POSITION_CONTROL / VELOCITY_CONTROL).
+  # If omitted, PyBullet defaults are used.
+  # Lowering these is often the easiest way to reduce torque saturation
+  # while keeping acceptable tracking.
+  position_gain: 0.3            # Kp for POSITION_CONTROL (scalar)
+  velocity_gain: 1.0            # Kd for POSITION_CONTROL / VELOCITY_CONTROL (scalar)
+
+# ============================================================
+# Camera configuration
+# ============================================================
+
+camera:
+  tracking: true
+  distance: 1.5
+  yaw: 90
+  pitch: -30
+  target: "mid_joint"         # "base" | "mid_joint"
+
+# ============================================================
+# Robot–environment contact dynamics (global defaults)
+# ============================================================
+
+dynamics:
+  lateral_friction: 0.8
+  spinning_friction: 0.0
+  rolling_friction: 0.0
+  restitution: 0.0
+  friction_anchor: 1
+
+# ============================================================
+# World / environment configuration
+# ============================================================
+# Supported / planned world types:
+#   - "flat"                  : infinite flat ground
+#   - "pipe"                  : constant-diameter straight pipe
+#   - "junction"              : pipe with a single branch (arbitrary angle, radians)
+#   - "varying_pipe_3section" : lower → transition → upper diameter pipe
+# ============================================================
+
+worlds:
+  - type: "flat"
+    pos: [0.0, 0.0, 0.0]
+    rpy: [0.0, 0.0, 0.0]
+
+  # Uneven terrain: vertical cylinders (pipes) packed closer.
+  # Cylinder axis is vertical when rpy=[0,0,0]. Height = length.
+  # pos.z = length/2 so they sit on ground.
+  # - type: "varying_pipe_3section"
+  #   pos: [-0.5, -0.5, 0.7]
+  #   rpy: [0.0, 0.0, 0.0]
+
+  #   lower_radius: 0.04
+  #   upper_radius: 0.06
+  #   L_lower: 0.85
+  #   L_transition: 0.15
+  #   L_upper: 0.85
+
+  #   n_transition_segments: 24
+
+  #   rgba_lower:      [0.2, 0.6, 0.9, 1.0]
+  #   rgba_transition: [0.9, 0.7, 0.2, 1.0]
+  #   rgba_upper:      [0.2, 0.9, 0.4, 1.0]
+
+  #   pipe_dynamics:
+  #     lateral_friction: 0.8
+  #     spinning_friction: 0.0
+  #     rolling_friction: 0.0
+  #     restitution: 0.0
+  #     friction_anchor: 1
+
+
+  - type: "pipe"
+    pos: [-0.5, -0.5, 0.8]         # world origin
+    rpy: [0.0, 0.0, 0.0]         # [rad]; [0,0,0] = vertical pipe
+
+    radius: 0.04              # constant pipe radius [m]
+    length: 1.6                 # pipe length [m]
+    rgba: [0.7, 0.7, 0.7, 1.0]   # pipe color
+
+    pipe_dynamics:
+      lateral_friction: 0.9
+      spinning_friction: 0.0
+      rolling_friction: 0.0
+      restitution: 0.0
+      friction_anchor: 1
+
+  # - type: "pipe"
+  #   pos: [-0.5, -0.5, 0.5]         # world origin
+  #   rpy: [1.5708, 0.0, 0.0]         # [rad]; [0,0,0] = vertical pipe
+
+  #   radius: 0.04              # constant pipe radius [m]
+  #   length: 0.8                 # pipe length [m]
+  #   rgba: [0.7, 0.7, 0.7, 1.0]   # pipe color
+
+  #   pipe_dynamics:
+  #     lateral_friction: 0.9
+  #     spinning_friction: 0.0
+  #     rolling_friction: 0.0
+  #     restitution: 0.0
+  #     friction_anchor: 1
+
+  # - type: "junction"
+  #   pos: [-0.5, -0.5, 0.4]
+  #   rpy: [0.0, 0.0, 0.0]
+
+  #   main_pipe:
+  #     radius: 0.035
+  #     length: 1.0
+
+  #   branch_pipe:
+  #     radius: 0.030
+  #     length: 1.0
+  #     branch_angle: 1.57079632679   # radians (pi/2)
+
+  #   rgba_main:   [0.6, 0.6, 0.6, 1.0]
+  #   rgba_branch: [0.8, 0.5, 0.3, 1.0]
+
+  #   pipe_dynamics:
+  #     lateral_friction: 0.85
+  #     spinning_friction: 0.0
+  #     rolling_friction: 0.0
+  #     restitution: 0.0
+  #     friction_anchor: 1
+
+  # - type: "pipe"
+  #   pos: [0.0, 0.5, 0.0]         # world origin
+  #   rpy: [0.0, 0.0, 0.0]         # [rad]; [0,0,0] = vertical pipe
+
+  #   radius: 0.6              # constant pipe radius [m]
+  #   length: 0.3                 # pipe length [m]
+  #   rgba: [0.7, 0.7, 0.7, 1.0]   # pipe color
+
+  #   pipe_dynamics:
+  #     lateral_friction: 0.9
+  #     spinning_friction: 0.0
+  #     rolling_friction: 0.0
+  #     restitution: 0.0
+  #     friction_anchor: 1
+
+  # - type: "pipe"
+  #   pos: [0.0, 1.0, 0.0]         # world origin
+  #   rpy: [0.0, 0.0, 0.0]         # [rad]; [0,0,0] = vertical pipe
+
+  #   radius: 0.8              # constant pipe radius [m]
+  #   length: 0.5                 # pipe length [m]
+  #   rgba: [0.7, 0.7, 0.7, 1.0]   # pipe color
+
+  #   pipe_dynamics:
+  #     lateral_friction: 0.9
+  #     spinning_friction: 0.0
+  #     rolling_friction: 0.0
+  #     restitution: 0.0
+  #     friction_anchor: 1
+ 

@@ -1,0 +1,541 @@
+hebi_control_frequency: 100.0
+hebi_feedback_frequency: 200.0
+hebi_command_lifetime: 1000.0
+command_manager_frequency: 100
+sensors_watchdog_rate: 5
+
+REU:
+  max_torque: 5.5
+  max_velocity: 3
+  module_names: ['RUA_004','RUB_011','RUB_007','RUA_009','RUA_006','RUB_003','RUA_008','RUA_005','RUB_015','RUB_001','RUB_008','RUA_002','RUB_012','RUB_002','RUA_001','RUB_010']
+  home: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  zero_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0, 0.0, 0.0]
+  
+  # Module geometry (Eq. 10, 11)
+  module_geometry:
+    l_M: 0.050
+    d_M: 0.050
+  
+  go_to_position_controller:
+    transition_time: 1.5
+  gaitlib_controller:
+    transition_time: 1.5
+    
+  gait_params:
+    conical_sidewinding:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.6
+        A_even_tol: 0.2
+        A_odd: 0.6
+        A_odd_tol: 0.2
+        wS_even: 0.5
+        wS_odd: 0.5
+        wT_even: 3.5
+        wT_odd: 3.5
+        delta: 0.78539816339
+        speed_multiplier: 1
+        max_slope: 0.1
+    turn_in_place:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.8
+        A_odd: 0.8
+        wS_even: 0.5
+        wS_odd: 0.5
+        wT_even: 3.5
+        wT_odd: 3.5
+        delta: 0.78539816339
+        speed_multiplier: 1
+    linear_progression:
+        beta_even: 0.3
+        beta_odd: 0.0
+        A_even: 0.0
+        A_odd: 0.5
+        wS_even: 0.78539816339
+        wS_odd: 0.78539816339
+        wT_even: 3.5
+        wT_odd: 3.5
+        delta: 0
+        speed_multiplier: 2
+    rolling:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.3
+        A_odd: 0.3
+        wS_even: 0
+        wS_odd: 0
+        wT_even: -4.0
+        wT_odd: -4.0
+        delta: 1.57079632679
+        speed_multiplier: 2
+    rolling_in_shape:
+        wT_even: 3.0
+        wT_odd: 3.0
+    rolling_helix:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 1.75
+        wT_odd: 1.75
+        delta: -1.57079632679
+        speed_multiplier: 1
+        tightness: 0.6
+        pole_direction: 1.0
+    lateral_undulation:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.0
+        A_odd: 0.75
+        wS_even: 4.0
+        wS_odd: 4.0
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: 0
+        speed_multiplier: 1
+    slithering:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.6
+        A_odd: 1
+        wS_even: 0.978
+        wS_odd: 0.508
+        wT_even: -6.0
+        wT_odd: -3.0
+        delta: 0
+        speed_multiplier: 1
+    pole_climb:
+        A_transition: 0.35
+        A_max: 1.75
+        arc_beta: 0.3
+        imu_dir: 1
+        dWs_dAodd: 0.125
+        
+    # T-junction (Karumanchi et al. 2025)
+    t_junction:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+        # Module geometry (Eq. 10, 11)
+        l_M: 0.050
+        d_M: 0.050
+        # Window parameters (Eq. 7)
+        m: 50.0
+        sig: 0.05
+        T: 0.25
+        # Pulse helix (Eq. 6) - matches Karthik: offset_r=r*10, offset_p=-p*0.25
+        k_r: 11.0
+        k_p: 0.75
+        # Loosening (Eq. 12)
+        k_low: 0.4
+        # Pipe diameter (Eq. 11)
+        d_pipe: 0.089
+        
+    spiraling:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+        
+    windowed_rolling_helix:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+
+  teleop:
+    spiral_forward_auto_duration_s: 2.0
+    transition_auto_timeout_s: 6.0
+    tjunction:
+      # Spiral phase (Algorithm 1): runs for fixed time
+      spiral_s: 10.0              # Duration of spiraling [seconds] - long process
+      s_0_start: 0.4              # Pulse position along body (0=head, 1=tail)
+      
+      # Turn phase (Algorithm 2): n_t sweep or fixed time
+      use_nt_sweep: true          # true = physics-based n_t sweep, false = fixed time
+      nt_sweep_rate_mult: 50.0    # Speed multiplier for n_t sweep
+      turn_s: 15.0                # Fixed time fallback [seconds] if use_nt_sweep: false
+      
+      # Hold times
+      pre_hold_s: 0.5
+      post_hold_s: 0.5
+      
+      # Other parameters
+      tightness_target: 0.80
+      A_1_multiplier: 1.0
+      A_2_multiplier: 1.0
+      phi_0_straight: 0.0
+      phi_0_left: 1.57079632679
+      phi_0_right: -1.57079632679
+      m: 50.0
+      sig: 0.05
+      T: 0.25
+      enable_phi0_axis: true
+      phi0_rate_gain: 0.5
+      phi0_deadzone: 0.1
+      debug: false
+      
+SEA:
+  max_torque: 8
+  module_names: ['SA023','SA048','SA045','SA008','SA019','SA037','SA082','SA025','SA022','SA042','SA039','SA047','SA053','SA026','SA076','SA040']
+  home: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  zero_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  
+  module_geometry:
+    l_M: 0.064
+    d_M: 0.051
+    
+  go_to_position_controller:
+    transition_time: 1.5
+  gaitlib_controller:
+    transition_time: 0.5
+    
+  gait_params:
+    conical_sidewinding:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.65
+        A_even_tol: 0.2
+        A_odd: 0.65
+        A_odd_tol: 0.2
+        wS_even: 0.6
+        wS_odd: 0.6
+        wT_even: 4.0
+        wT_odd: 4.0
+        delta: 0.78539816339
+        speed_multiplier: 1
+        max_slope: 0.1
+    turn_in_place:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.6
+        A_odd: 0.6
+        wS_even: 0.78539816339
+        wS_odd: 0.78539816339
+        wT_even: -4.0
+        wT_odd: -4.0
+        delta: 0.78539816339
+        speed_multiplier: 1
+    linear_progression:
+        beta_even: 0.3
+        beta_odd: 0.0
+        A_even: 0.0
+        A_odd: 0.5
+        wS_even: 0.78539816339
+        wS_odd: 0.78539816339
+        wT_even: 3.5
+        wT_odd: 3.5
+        delta: 0
+        speed_multiplier: 2
+    rolling:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 0
+        wS_odd: 0
+        wT_even: 4.0
+        wT_odd: 4.0
+        delta: 1.57079632679
+        speed_multiplier: 2
+    rolling_in_shape:
+        wT_even: 3.0
+        wT_odd: 3.0
+    rolling_helix:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: -1.75
+        wT_odd: -1.75
+        delta: -1.57079632679
+        speed_multiplier: 0.7
+        tightness: 1
+        pole_direction: 1.0
+    lateral_undulation:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.0
+        A_odd: 0.75
+        wS_even: 4.0
+        wS_odd: 4.0
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: 0
+        speed_multiplier: 1
+    slithering:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.5
+        A_odd: 1
+        wS_even: 0.78539816339
+        wS_odd: 0.52359877559
+        wT_even: -6.0
+        wT_odd: -3.0
+        delta: 0
+        speed_multiplier: 1
+    pole_climb:
+        A_transition: 0.35
+        A_max: 2.5
+        arc_beta: 0.3
+        imu_dir: 1
+        dWs_dAodd: 0.125
+        
+    t_junction:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+        l_M: 0.064
+        d_M: 0.051
+        m: 50.0
+        sig: 0.05
+        T: 0.25
+        k_r: 11.0
+        k_p: 0.75
+        k_low: 0.4
+        d_pipe: 0.089
+        
+    spiraling:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+        
+    windowed_rolling_helix:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+
+  teleop:
+    spiral_forward_auto_duration_s: 2.0
+    transition_auto_timeout_s: 6.0
+    tjunction:
+      spiral_s: 10.0
+      s_0_start: 0.4
+      use_nt_sweep: true
+      nt_sweep_rate_mult: 50.0
+      turn_s: 15.0
+      pre_hold_s: 0.5
+      post_hold_s: 0.5
+      tightness_target: 0.80
+      A_1_multiplier: 1.0
+      A_2_multiplier: 1.0
+      phi_0_straight: 0.0
+      phi_0_left: 1.57079632679
+      phi_0_right: -1.57079632679
+      m: 50.0
+      sig: 0.05
+      T: 0.25
+      enable_phi0_axis: true
+      phi0_rate_gain: 0.5
+      phi0_deadzone: 0.1
+      debug: false
+      
+RSNAKE:
+  max_torque: 16
+  module_names: ['R8-00207','R8-00113','R8-00049','R8-00200','R8-00181','R8-00283','R8-00211','R8-00229','R8-00137','R8-00172','R8-00058','R8-00240','R8-00232','R8-00099']
+  home: [0.0, 0.0, -0.6, 0.0, 0.5, 0.0, 0.5, 0.0, -0.5, 0.0, 0.5, 0.0, 0.6, 0]
+  
+  module_geometry:
+    l_M: 0.075
+    d_M: 0.075
+    
+  go_to_position_controller:
+    transition_time: 5.0
+  gaitlib_controller:
+    transition_time: 2.0
+    
+  gait_params:
+    conical_sidewinding:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.5
+        A_even_tol: 0.2
+        A_odd: 0.5
+        A_odd_tol: 0.2
+        wS_even: 0.686
+        wS_odd: 0.686
+        wT_even: 2.5
+        wT_odd: 2.5
+        delta: 0.78539816339
+        speed_multiplier: 1
+        max_slope: 0.1
+    turn_in_place:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.5
+        A_odd: 0.5
+        wS_even: 0.686
+        wS_odd: 0.686
+        wT_even: 2.5
+        wT_odd: 2.5
+        delta: 0.78539816339
+        speed_multiplier: 1
+    linear_progression:
+        beta_even: 0.3
+        beta_odd: 0.0
+        A_even: 0.0
+        A_odd: 0.35
+        wS_even: 0.78539816339
+        wS_odd: 0.78539816339
+        wT_even: 3.5
+        wT_odd: 3.5
+        delta: 0
+        speed_multiplier: 1
+    rolling:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.3
+        A_odd: 0.3
+        wS_even: 0
+        wS_odd: 0
+        wT_even: 4.0
+        wT_odd: 4.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+    rolling_in_shape:
+        wT_even: 3.0
+        wT_odd: 3.0
+    rolling_helix:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+        tightness: 0.6
+        pole_direction: 1.0
+    lateral_undulation:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.0
+        A_odd: 0.5
+        wS_even: 4.4
+        wS_odd: 4.4
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: 0
+        speed_multiplier: 1
+    slithering:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.375
+        A_odd: 0.75
+        wS_even: 0.78539816339
+        wS_odd: 0.52359877559
+        wT_even: -6.0
+        wT_odd: -3.0
+        delta: 0
+        speed_multiplier: 1
+    pole_climb:
+        A_transition: 0.35
+        A_max: 1.25
+        arc_beta: 0.3
+        imu_dir: 0
+        dWs_dAodd: 0.2
+        
+    t_junction:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+        l_M: 0.075
+        d_M: 0.075
+        m: 50.0
+        sig: 0.05
+        T: 0.25
+        k_r: 11.0
+        k_p: 0.75
+        k_low: 0.4
+        d_pipe: 0.089
+        
+    spiraling:
+        beta_even: 0.0
+        beta_odd: 0.0
+        A_even: 0.2
+        A_odd: 0.2
+        wS_even: 1.2
+        wS_odd: 1.2
+        wT_even: 2.0
+        wT_odd: 2.0
+        delta: -1.57079632679
+        speed_multiplier: 1
+
+  teleop:
+    spiral_forward_auto_duration_s: 2.0
+    transition_auto_timeout_s: 6.0
+    tjunction:
+      spiral_s: 10.0
+      s_0_start: 0.4
+      use_nt_sweep: true
+      nt_sweep_rate_mult: 50.0
+      turn_s: 15.0
+      pre_hold_s: 0.5
+      post_hold_s: 0.5
+      tightness_target: 0.80
+      A_1_multiplier: 1.0
+      A_2_multiplier: 1.0
+      phi_0_straight: 0.0
+      phi_0_left: 1.57079632679
+      phi_0_right: -1.57079632679
+      m: 50.0
+      sig: 0.05
+      T: 0.25
+      enable_phi0_axis: true
+      phi0_rate_gain: 0.5
+      phi0_deadzone: 0.1
+      debug: false
